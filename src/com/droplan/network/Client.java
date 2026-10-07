@@ -12,7 +12,7 @@ public class Client {
         this.port = port;
     }
 
-    public boolean join(String roomCode){
+    public boolean join(String roomCode) throws IOException {
         Socket clientSocket = null;
         BufferedReader in = null;
         PrintWriter out = null;
@@ -25,29 +25,25 @@ public class Client {
             String status = in.readLine();
 
             if ("OK".equals(status)){
-                System.out.println("Joined room successfully.");
                 return true;
             }
-            System.out.println("Could not join: " + status);
             return false;
 
-        }catch (IOException e){
-            e.printStackTrace();
-            return false;
         }finally {
-            try{
-                if (in != null){
-                    in.close();
-                }
-                if (out != null){
-                    out.close();
-                }
-                if (clientSocket != null){
-                    clientSocket.close();
-                }
+            try {
+                 if (in != null){
+                     in.close();
+                 }
+                 if (out != null){
+                     out.close();
+                 }
+                 if (clientSocket != null){
+                     clientSocket.close();
+                 }
             }catch (IOException e){
-                e.printStackTrace();
+                    e.printStackTrace();
             }
         }
     }
 }
+
