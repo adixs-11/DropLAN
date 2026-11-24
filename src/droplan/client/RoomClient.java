@@ -20,22 +20,21 @@ public class RoomClient {
              BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
 
             System.out.println("Connected to server at " + host + ":" + port);
+            Thread receiverHandler = new Thread(new ClientReceiver(in));
+            receiverHandler.start();
             Scanner sc = new Scanner(System.in);
             while (true) {
                 String msg = sc.nextLine();
                 out.println(msg);
-
-                String response = in.readLine();
-                if (response == null) {
-                    break;
-                }
-                System.out.println("Server response: " + response);
-
-                if (msg.equals("/quit")) {
+                if (msg.equalsIgnoreCase("/quit")) {
                     break;
                 }
             }
-
+            try {
+                receiverHandler.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         } catch (IOException e) {
             System.err.println("Connection error: " + e.getMessage());
             e.printStackTrace();

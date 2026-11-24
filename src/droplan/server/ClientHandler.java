@@ -8,17 +8,32 @@ import java.net.Socket;
 
 public class ClientHandler implements Runnable {
     private final Socket socket;
-    public ClientHandler(Socket socket) {
+    private final ChatRoom room;
+    private volatile PrintWriter clientOut;
+
+    public ClientHandler(Socket socket, ChatRoom room) {
         this.socket = socket;
+        this.room = room;
     }
 
     @Override
     public void run() {
+        Participant participant = null;
+
         try (Socket s = this.socket;
-             BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
-             PrintWriter out = new PrintWriter(s.getOutputStream(), true)) {
+             BufferedReader in = new BufferedReader(
+                     new InputStreamReader(s.getInputStream()));
+             PrintWriter out = new PrintWriter(
+                     s.getOutputStream(), true)) {
+
+            this.clientOut = out;
 
             System.out.println("New client connected: " + s.getRemoteSocketAddress());
+
+            String participantName = s.getRemoteSocketAddress().toString();
+            participant = new Participant(participantName, this);
+            room.addParticipant(participant);
+            room.broadcast("[Room] " + participantName + " joined.");
 
             String message;
             while ((message = in.readLine()) != null) {
@@ -27,14 +42,27 @@ public class ClientHandler implements Runnable {
                     break;
                 }
 
-                // Per-client logic: Echo the message back (or process it)
-                System.out.println("Received: " + message);
-                out.println("Server: " + message);
+                System.out.println(
+                        "Received from " + participantName + ": " + message);
+                room.broadcast(participantName + ": " + message);
             }
+
         } catch (IOException e) {
-            System.err.println("Communication error with client: " + e.getMessage());
+            System.err.println(
+                    "Communication error with client: " + e.getMessage());
         } finally {
+            if (participant != null) {
+                room.removeParticipant(participant);
+                room.broadcast(
+                        "[Room] " + participant.getName() + " left.");
+            }
+
             System.out.println("Client connection closed.");
+        }
+    }
+    public void sendMessage(String message) {
+        if (clientOut != null) {
+            clientOut.println(message);
         }
     }
 }

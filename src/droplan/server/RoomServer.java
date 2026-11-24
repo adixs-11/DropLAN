@@ -19,13 +19,13 @@ public class RoomServer {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Room server listening on port " + port);
             System.out.println("Waiting for one client...");
-
+            ChatRoom room = new ChatRoom();
             while (true) {
                 Socket client = serverSocket.accept();
                 System.out.println("Accepted: " + client.getRemoteSocketAddress());
 
-                Thread handlerThread = new Thread(new ClientHandler(client));
-                handlerThread.start();
+                Thread clientHandler = new Thread(new ClientHandler(client, room));
+                clientHandler.start();
             }
 
         } catch (IOException e) {
