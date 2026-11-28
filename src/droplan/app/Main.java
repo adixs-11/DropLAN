@@ -2,6 +2,7 @@ package droplan.app;
 
 import droplan.client.RoomClient;
 import droplan.server.RoomServer;
+
 import java.util.Scanner;
 
 public class Main {
@@ -13,14 +14,11 @@ public class Main {
                 ConsoleMenu.Choice choice = menu.promptChoice(input);
 
                 switch (choice) {
-                    case CREATE_ROOM -> {
-                        int port = menu.promptPort(input);
-                        new RoomServer().start(port);
-                    }
+                    case CREATE_ROOM -> new RoomServer().start(menu.promptPort(input));
                     case JOIN_ROOM -> {
                         String host = menu.promptHost(input);
                         int port = menu.promptPort(input);
-                        new RoomClient().start(host, port);
+                        new RoomClient().start(host, port, input);
                     }
                     case EXIT -> {
                         System.out.println("Goodbye!");
